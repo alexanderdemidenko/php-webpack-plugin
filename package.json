@@ -1,0 +1,23 @@
+{
+  "name": "php-webpack-plugin",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexanderdemidenko/php-webpack-plugin.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/alexanderdemidenko/php-webpack-plugin/issues"
+  },
+  "homepage": "https://github.com/alexanderdemidenko/php-webpack-plugin#readme",
+  "devDependencies": {
+    "html-minifier-terser": "^5.1.1",
+    "simple-text-parser": "^2.1.1"
+  }
+}
