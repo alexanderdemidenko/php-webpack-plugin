@@ -27,7 +27,7 @@ class PhpHtmlPlugin {
         this.options = Object.assign(defaultOptions, options || {});
         const minifierOptions = this.options.minifierOptions;
         if (minifierOptions.ignoreCustomFragments) {
-             minifierOptions.ignoreCustomFragments = [...minifierOptions.ignoreCustomFragments, phpTag];
+            minifierOptions.ignoreCustomFragments = [...minifierOptions.ignoreCustomFragments, phpTag];
         } else {
             minifierOptions.ignoreCustomFragments = [phpTag];
         }
@@ -37,22 +37,22 @@ class PhpHtmlPlugin {
     apply(compiler) {
         compiler.hooks.done.tap("PhpHtmlPlugin", (stats) => {
             const target = path.resolve(stats.compilation.compiler.context, this.options.include);
-
+            const { outputPath } = stats.compilation.compiler;
             if (fs.statSync(target).isDirectory()) {
-                this.handleDir(stats.compilation.compiler.context.outputPath, target);
+                this.handleDir(outputPath, target, "");
             } else {
-                this.handleFile(stats.compilation.compiler.context.outputPath, target);
+                this.handleFile(outputPath, this.options.include, "");
             }
         })
     }
 
-    handleDir(outputPath, target, targetDir = "") {
+    handleDir(outputPath, target, targetDir) {
         fs.readdir(target, (err, files) => {
             if (err) {
                 throw err;
             }
             files.forEach((name) => {
-                if (fs.statSync(path.resolve(target, name).isDirectory() )) {
+                if (fs.statSync(path.resolve(target, name)).isDirectory() ) {
                     if (!this.options.recursive) {
                         return
                     }
@@ -83,17 +83,16 @@ class PhpHtmlPlugin {
             if (this.options.insertion) {
                 if (Array.isArray(this.options.insertion)) {
                     if (this.options.insertion.includes(fileName)) {
-                        ast.unshift({ tag: "php", text: this.insertion() });
+                        ast.push({ tag: "php", text: this.insertion() });
                     }
                 } else {
                     throw new Error("Option insertion must be array");
                 }
             } else {
-                ast.unshift({ tag: "php", text: this.insertion() });
+                ast.push({ tag: "php", text: this.insertion() });
             }
 
             fileData = Parser.renderTree(ast);
-            //todo: path
             fs.writeFileSync(path.resolve(outputPath, targetDir, fileName), fileData);
         }
     }
