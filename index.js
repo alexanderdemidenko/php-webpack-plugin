@@ -41,32 +41,34 @@ class PhpHtmlPlugin {
             if (fs.statSync(target).isDirectory()) {
                 this.handleDir(outputPath, target, "");
             } else {
-                this.handleFile(outputPath, this.options.include, "");
+                this.handleFile(outputPath, target, this.options.include, path.resolve(outputPath, this.options.include));
             }
         })
     }
 
-    handleDir(outputPath, target, targetDir) {
-        fs.readdir(target, (err, files) => {
+    handleDir(outputPath, targetDir, subTargetDir) {
+    	console.log(targetDir, subTargetDir);
+        fs.readdir(path.resolve(targetDir, subTargetDir), (err, files) => {
             if (err) {
                 throw err;
             }
             files.forEach((name) => {
-                if (fs.statSync(path.resolve(target, name)).isDirectory() ) {
+                if (fs.statSync(path.resolve(targetDir, subTargetDir, name)).isDirectory()) {
                     if (!this.options.recursive) {
                         return
                     }
-                    fs.mkdir(path.resolve(outputPath, name));
-                    this.handleDir(outputPath, path.resolve(target, name), path.join(targetDir, name));
+                    fs.mkdirSync(path.resolve(outputPath, subTargetDir, name));
+                    this.handleDir(outputPath, targetDir, path.join(subTargetDir, name));
                 } else {
-                    this.handleFile(outputPath, path.resolve(target, name), name, targetDir);
+                	const outputFilePath =  path.resolve(outputPath, subTargetDir, name);
+                    this.handleFile(outputPath, path.resolve(targetDir, subTargetDir, name), name, outputFilePath);
                 }
                 
             });
         });
     }
 
-    handleFile(outputPath, filePath, fileName, targetDir) {
+    handleFile(outputPath, filePath, fileName, outputFilePath) {
         if (fileName.match(/\.php$/i)) {
             let fileData = fs.readFileSync(filePath).toString();
 
@@ -80,7 +82,7 @@ class PhpHtmlPlugin {
             }
 
             ast.unshift({ tag: "php", text: `<?php require_once "${this.options.assetsFileName}" ?>` });
-            if (this.options.insertion) {
+            /*if (this.options.insertion) {
                 if (Array.isArray(this.options.insertion)) {
                     if (this.options.insertion.includes(fileName)) {
                         ast.push({ tag: "php", text: this.insertion() });
@@ -90,10 +92,11 @@ class PhpHtmlPlugin {
                 }
             } else {
                 ast.push({ tag: "php", text: this.insertion() });
-            }
+            }*/
+            ast.push({ tag: "php", text: this.insertion() });
 
             fileData = Parser.renderTree(ast);
-            fs.writeFileSync(path.resolve(outputPath, targetDir, fileName), fileData);
+            fs.writeFileSync(outputFilePath, fileData);
         }
     }
 
